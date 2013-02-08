@@ -26,14 +26,12 @@ class Drumy.Voice
     @velocityMin = 0
     @offset = 0
 
-    for own key of options
-      @[key] = options[key]
+    @[key] = options[key] for own key of options
 
     @output = @context.createGainNode()
     @output.connect(@padOutput)
 
-    if @buffer
-      @loadBuffer @buffer
+    @loadBuffer @buffer if @buffer
   loadBuffer: (buffer) ->
     if Array.isArray(buffer)
       @buffer = @context.createBuffer(2, buffer[0].length, @context.sampleRate)
@@ -44,12 +42,10 @@ class Drumy.Voice
     new Sample @buffer, velocity, @offset, @velocityMin, @velocityMax, @output, @context
     @
   setVelocityMax: (velocity) ->
-    if @velocityMin < velocity <= 127
-      @velocityMax = velocity
+    @velocityMax = velocity if @velocityMin < velocity <= 127
     @
   setVelocityMin: (velocity) ->
-    if 0 <= velocity < @velocityMax
-      @velocityMin = velocity
+    @velocityMin = velocity if 0 <= velocity < @velocityMax
     @
   setGain: (value) ->
     @output.gain.value = value
@@ -57,3 +53,5 @@ class Drumy.Voice
   setOffset: (offset) ->
     @offset = offset
     @
+  destroy: ->
+    @output.disconnect(0)

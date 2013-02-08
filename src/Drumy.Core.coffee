@@ -1,8 +1,7 @@
 Drumy = {}
 
 checkPad = (pad, note, velocity) ->
-  if pad.note is note
-    pad.trigger velocity
+  pad.trigger velocity if pad.note is note
   return
 
 class Drumy.Core
@@ -12,18 +11,19 @@ class Drumy.Core
     @pads = []
     @output = @context.createGainNode()
     @connectToMaster = true
-    for own key of options
-      @[key] = options[key]
+    @[key] = options[key] for own key of options
 
-    if @connectToMaster
-      @connect @context.destination
+    @connect @context.destination if @connectToMaster
   addPad: (options) ->
     options = options or {}
     options.context = @context
     pad = new Drumy.Pad options
     pad.output.connect(@output)
     @pads.push pad
-    pad    
+    pad 
+  removePad: (index) ->
+    @pads[index].destroy() if 0 <= index < @pads.length
+    @
   getPad: (index) ->
     if 0 <= index < @pads.length
       @pads[index]

@@ -31,6 +31,17 @@
       return voice;
     };
 
+    Pad.prototype.removeVoice = function(index) {
+      var i, voice;
+      if ((0 <= index && index < this.voices.length)) {
+        voice = this.voices[index];
+        i = this.voices.indexOf(voice);
+        voice.destroy();
+        this.voices.splice(i, 1);
+      }
+      return this;
+    };
+
     Pad.prototype.getVoice = function(index) {
       if ((0 <= index && index < this.voices.length)) return this.voices[index];
     };
@@ -58,6 +69,15 @@
         checkVoices(voice, velocity);
       }
       return this;
+    };
+
+    Pad.prototype.destroy = function() {
+      var voice, _i, _len, _ref;
+      _ref = this.voices;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        voice = _ref[_i];
+        voice.destroy();
+      }
     };
 
     return Pad;

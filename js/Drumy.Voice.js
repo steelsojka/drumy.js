@@ -85,6 +85,10 @@
       return this;
     };
 
+    Voice.prototype.destroy = function() {
+      return this.output.disconnect(0);
+    };
+
     return Voice;
 
   })();

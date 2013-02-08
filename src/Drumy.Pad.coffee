@@ -8,8 +8,7 @@ class Drumy.Pad
     @voices = []
     @note = 32
 
-    for own key of options
-      @[key] = options[key]
+    @[key] = options[key] for own key of options
   
     @output = @context.createGainNode();
   addVoice: (options) ->
@@ -19,12 +18,17 @@ class Drumy.Pad
     voice = new Drumy.Voice options
     @voices.push voice
     voice
-  getVoice: (index) ->
+  removeVoice: (index) ->
     if 0 <= index < @voices.length
-      @voices[index]
+      voice = @voices[index]
+      i = @voices.indexOf(voice)
+      voice.destroy()
+      @voices.splice(i, 1)
+    @
+  getVoice: (index) ->
+    @voices[index] if 0 <= index < @voices.length   
   setNoteNumber: (number) ->
-    if 0 <= number <= 127
-      @note = number
+    @note = number if 0 <= number <= 127
     @
   setGain: (value) ->
     @output.gain.value = value
@@ -35,5 +39,7 @@ class Drumy.Pad
   trigger: (velocity) ->
     checkVoices voice, velocity for voice in @voices
     @
-
+  destroy: ->
+    voice.destroy() for voice in @voices
+    return
 

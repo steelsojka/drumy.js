@@ -34,6 +34,11 @@
       return pad;
     };
 
+    Core.prototype.removePad = function(index) {
+      if ((0 <= index && index < this.pads.length)) this.pads[index].destroy();
+      return this;
+    };
+
     Core.prototype.getPad = function(index) {
       if ((0 <= index && index < this.pads.length)) return this.pads[index];
     };
