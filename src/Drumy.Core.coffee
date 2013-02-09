@@ -1,7 +1,7 @@
 Drumy = {}
 
 checkPad = (pad, note, velocity) ->
-  pad.trigger velocity if pad.note is note
+  pad.trigger(velocity) if pad.note is note
   return
 
 class Drumy.Core
@@ -17,9 +17,9 @@ class Drumy.Core
   addPad: (options) ->
     options = options or {}
     options.context = @context
-    pad = new Drumy.Pad options
+    pad = new Drumy.Pad(options)
     pad.output.connect(@output)
-    @pads.push pad
+    @pads.push(pad)
     pad 
   removePad: (index) ->
     @pads[index].destroy() if 0 <= index < @pads.length
@@ -28,15 +28,15 @@ class Drumy.Core
     if 0 <= index < @pads.length
       @pads[index]
   connect: (node) ->
-    @output.connect node
+    @output.connect(node)
     @
   getContext: -> @context
   trigger: (note, velocity) ->
-    checkPad pad, note, velocity for pad in @pads
+    checkPad(pad, note, velocity) for pad in @pads
     @
 
 Drumy.create = (options) ->  
-  new Drumy.Core options
+  new Drumy.Core(options)
 
 @Drumy = Drumy;
 

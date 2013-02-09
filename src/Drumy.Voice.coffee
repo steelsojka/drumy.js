@@ -39,7 +39,7 @@ class Drumy.Voice
       @buffer = buffer
     @
   trigger: (velocity) ->
-    new Sample @buffer, velocity, @offset, @velocityMin, @velocityMax, @output, @context
+    new Sample(@buffer, velocity, @offset, @velocityMin, @velocityMax, @output, @context)
     @
   setVelocityMax: (velocity) ->
     @velocityMax = velocity if @velocityMin < velocity <= 127

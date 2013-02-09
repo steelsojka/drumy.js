@@ -1,6 +1,6 @@
 checkVoices = (voice, velocity) ->
   if voice.velocityMax >= velocity >= voice.velocityMin
-    voice.trigger velocity
+    voice.trigger(velocity)
     return
 
 class Drumy.Pad
@@ -15,8 +15,8 @@ class Drumy.Pad
     options = options or {}
     options.context = @context
     options.padOutput = @output
-    voice = new Drumy.Voice options
-    @voices.push voice
+    voice = new Drumy.Voice(options)
+    @voices.push(voice)
     voice
   removeVoice: (index) ->
     if 0 <= index < @voices.length
@@ -37,7 +37,7 @@ class Drumy.Pad
     @name = name
     @
   trigger: (velocity) ->
-    checkVoices voice, velocity for voice in @voices
+    checkVoices(voice, velocity) for voice in @voices
     @
   destroy: ->
     voice.destroy() for voice in @voices
