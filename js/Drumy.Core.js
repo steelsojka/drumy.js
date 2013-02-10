@@ -15,7 +15,7 @@
 
     function Core(options) {
       var key;
-      options = options || {};
+      options || (options = {});
       this.context = options.context || new webkitAudioContext();
       this.pads = [];
       this.output = this.context.createGainNode();
@@ -29,9 +29,19 @@
       }
     }
 
+    Core.prototype.loadConfig = function(configJSON) {
+      var pad, _ref;
+      _ref = configJSON.pads;
+      for (pad in _ref) {
+        if (!__hasProp.call(_ref, pad)) continue;
+        this.addPad(pad);
+      }
+      return this;
+    };
+
     Core.prototype.addPad = function(options) {
       var pad;
-      options = options || {};
+      options || (options = {});
       options.context = this.context;
       pad = new Drumy.Pad(options);
       pad.output.connect(this.output);

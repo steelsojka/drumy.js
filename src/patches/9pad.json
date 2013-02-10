@@ -1,0 +1,16 @@
+{
+  "pads" : [
+    {
+      "name" : "Kick",
+      "voices" : [
+        {
+          "url" : "",
+          "gain" : 1,
+          "vMin" : 0,
+          "vMax" : 127,
+          "offset" : 0
+        }
+      ]
+    }
+  ]
+}

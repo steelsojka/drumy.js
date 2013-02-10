@@ -11,7 +11,7 @@ class Sample
   trigger: (velocity, min, max) ->
     @source.start(@context.currentTime + @offset)
     @gainNode.gain.value = velocity / 127
-    setTimeout(@destroy.bind(@), @source.buffer.duration * 1000)
+    setTimeout(@destroy.bind(this), @source.buffer.duration * 1000)
     return
   destroy: ->
     @source.disconnect(0)
@@ -21,37 +21,52 @@ class Sample
 
 class Drumy.Voice
   constructor: (options) ->
-    options = options or {}
+    options or= {}
     @velocityMax = 127
     @velocityMin = 0
     @offset = 0
 
-    @[key] = options[key] for own key of options
+    @[key] = option for own option in options
 
     @output = @context.createGainNode()
     @output.connect(@padOutput)
 
-    @loadBuffer @buffer if @buffer
+    @setGain(options.gain) if options.gain
+    @loadFromUrl(options.url) if options.url
+    @loadBuffer(@buffer) if @buffer
+  loadFromUrl: (url, callback) ->
+    request = new XMLHttpRequest()
+    request.open('GET', url)
+    request.responseType = 'arraybuffer'
+    request.onload = (res) =>
+      @context.decodeAudioData(res.currentTarget.response, (buff) =>
+        @loadBuffer(buff)
+        callback?()
+        return
+      )
+      return
+    request.send()
+    this
   loadBuffer: (buffer) ->
     if Array.isArray(buffer)
       @buffer = @context.createBuffer(2, buffer[0].length, @context.sampleRate)
     else 
       @buffer = buffer
-    @
+    this
   trigger: (velocity) ->
     new Sample(@buffer, velocity, @offset, @velocityMin, @velocityMax, @output, @context)
-    @
+    this
   setVelocityMax: (velocity) ->
     @velocityMax = velocity if @velocityMin < velocity <= 127
-    @
+    this
   setVelocityMin: (velocity) ->
     @velocityMin = velocity if 0 <= velocity < @velocityMax
-    @
+    this
   setGain: (value) ->
     @output.gain.value = value
-    @
+    this
   setOffset: (offset) ->
     @offset = offset
-    @
+    this
   destroy: ->
     @output.disconnect(0)
