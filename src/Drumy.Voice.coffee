@@ -7,7 +7,7 @@ class Sample
     @source.buffer = buffer
     @source.connect(@gainNode)
     @gainNode.connect(output)
-    @trigger velocity, min, max
+    @trigger(velocity, min, max)
   trigger: (velocity, min, max) ->
     @source.start(@context.currentTime + @offset)
     @gainNode.gain.value = velocity / 127
