@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title></title>
-  <script type="text/javascript" src="dist/Drumy.Core.js"></script>
-  <script type="text/javascript" src="dist/Drumy.Pad.js"></script>
-  <script type="text/javascript" src="dist/Drumy.Voice.js"></script>
+  <script type="text/javascript" src="js/Drumy.Core.js"></script>
+  <script type="text/javascript" src="js/Drumy.Pad.js"></script>
+  <script type="text/javascript" src="js/Drumy.Voice.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
 </head>
 <body>
@@ -13,25 +13,28 @@
   <script type="text/javascript">
     $(function() {
       window.drums = Drumy.create();
-      drums.addPad().addVoice();
+      $.get('src/patches/9pad.json', function(e) {
+        drums.loadConfig(e);
+      });
+      // drums.addPad().addVoice();
 
-      var request = new XMLHttpRequest();
-      request.open('GET', 'audio/kick_05.wav');
-      request.responseType = "arraybuffer";
-      request.onload = function(e) {
-        var buffer = e.currentTarget.response;
-        drums.getContext().decodeAudioData(buffer, function(e) {
-          drums.getPad(0).getVoice(0).loadBuffer(e);
-          drums.trigger(32, 100);
-          setTimeout(function() {
-            drums.trigger(32, 100)
-          }, 10);
-          setTimeout(function() {
-            drums.trigger(32, 100)
-          }, 50);
-        });
-      };
-      request.send();
+      // var request = new XMLHttpRequest();
+      // request.open('GET', 'audio/kick_05.wav');
+      // request.responseType = "arraybuffer";
+      // request.onload = function(e) {
+      //   var buffer = e.currentTarget.response;
+      //   drums.getContext().decodeAudioData(buffer, function(e) {
+      //     drums.getPad(0).getVoice(0).loadBuffer(e);
+      //     drums.trigger(32, 100);
+      //     setTimeout(function() {
+      //       drums.trigger(32, 100)
+      //     }, 10);
+      //     setTimeout(function() {
+      //       drums.trigger(32, 100)
+      //     }, 50);
+      //   });
+      // };
+      // request.send();
     });
   </script>
 </body>

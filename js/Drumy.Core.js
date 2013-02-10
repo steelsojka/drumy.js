@@ -30,10 +30,10 @@
     }
 
     Core.prototype.loadConfig = function(configJSON) {
-      var pad, _ref;
+      var pad, _i, _len, _ref;
       _ref = configJSON.pads;
-      for (pad in _ref) {
-        if (!__hasProp.call(_ref, pad)) continue;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        pad = _ref[_i];
         this.addPad(pad);
       }
       return this;

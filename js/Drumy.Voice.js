@@ -33,15 +33,12 @@
   Drumy.Voice = (function() {
 
     function Voice(options) {
-      var option, _i, _len;
       options || (options = {});
       this.velocityMax = 127;
       this.velocityMin = 0;
       this.offset = 0;
-      for (_i = 0, _len = options.length; _i < _len; _i++) {
-        option = options[_i];
-        this[key] = option;
-      }
+      this.context = options.context;
+      this.padOutput = options.padOutput;
       this.output = this.context.createGainNode();
       this.output.connect(this.padOutput);
       if (options.gain) {

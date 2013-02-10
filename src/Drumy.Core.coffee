@@ -15,7 +15,7 @@ class Drumy.Core
 
     @connect @context.destination if @connectToMaster
   loadConfig: (configJSON) ->
-    @addPad(pad) for own pad of configJSON.pads
+    @addPad(pad) for pad in configJSON.pads
     return this
   addPad: (options) ->
     options or= {}

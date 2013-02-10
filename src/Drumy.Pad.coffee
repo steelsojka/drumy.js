@@ -8,19 +8,20 @@ class Drumy.Pad
     options or= {}
     @voices = []
     @note = 32
-
-    @[key] = option for own option in options
+    @context = options.context
+    @name = options.name or "Pad"
+    # @[key] = option for own key, option of options
   
     @output = @context.createGainNode();
-    @loadVoice(voice) for own voice in options.voices if options.voices
+    @loadVoice(voice) for voice in options.voices if options.voices
   loadVoice: (voice) ->
-    @addVoice(
+    @addVoice({
       url: voice.url
       velocityMin: voice.vMin
       velocityMax: voice.vMax
       gain: 1
       offset: 0  
-    )
+    })
     return this
   addVoice: (options) ->
     options or= {}

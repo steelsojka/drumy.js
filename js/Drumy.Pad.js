@@ -11,19 +11,17 @@
   Drumy.Pad = (function() {
 
     function Pad(options) {
-      var option, voice, _i, _j, _len, _len1, _ref;
+      var voice, _i, _len, _ref;
       options || (options = {});
       this.voices = [];
       this.note = 32;
-      for (_i = 0, _len = options.length; _i < _len; _i++) {
-        option = options[_i];
-        this[key] = option;
-      }
+      this.context = options.context;
+      this.name = options.name || "Pad";
       this.output = this.context.createGainNode();
       if (options.voices) {
         _ref = options.voices;
-        for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-          voice = _ref[_j];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          voice = _ref[_i];
           this.loadVoice(voice);
         }
       }

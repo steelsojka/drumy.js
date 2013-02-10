@@ -25,8 +25,9 @@ class Drumy.Voice
     @velocityMax = 127
     @velocityMin = 0
     @offset = 0
-
-    @[key] = option for own option in options
+    @context = options.context
+    @padOutput = options.padOutput
+    # @[key] = option for own key, option of options
 
     @output = @context.createGainNode()
     @output.connect(@padOutput)
