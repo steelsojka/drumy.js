@@ -16,27 +16,27 @@ class Drumy.Core
     @connect @context.destination if @connectToMaster
   loadConfig: (configJSON) ->
     @addPad(pad) for own pad of configJSON.pads
-    this
+    return this
   addPad: (options) ->
     options or= {}
     options.context = @context
     pad = new Drumy.Pad(options)
     pad.output.connect(@output)
     @pads.push(pad)
-    pad 
+    return pad 
   removePad: (index) ->
     @pads[index].destroy() if 0 <= index < @pads.length
-    this
+    return this
   getPad: (index) ->
     if 0 <= index < @pads.length
       @pads[index]
   connect: (node) ->
     @output.connect(node)
-    this
+    return this
   getContext: -> @context
   trigger: (note, velocity) ->
     checkPad(pad, note, velocity) for pad in @pads
-    this
+    return this
 
 Drumy.create = (options) ->  
   new Drumy.Core(options)

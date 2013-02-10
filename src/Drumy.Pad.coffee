@@ -21,35 +21,35 @@ class Drumy.Pad
       gain: 1
       offset: 0  
     )
-    this
+    return this
   addVoice: (options) ->
     options or= {}
     options.context = @context
     options.padOutput = @output
     voice = new Drumy.Voice(options)
     @voices.push(voice)
-    voice
+    return voice
   removeVoice: (index) ->
     if 0 <= index < @voices.length
       voice = @voices[index]
       i = @voices.indexOf(voice)
       voice.destroy()
       @voices.splice(i, 1)
-    this
+    return this
   getVoice: (index) ->
     @voices[index] if 0 <= index < @voices.length   
   setNoteNumber: (number) ->
     @note = number if 0 <= number <= 127
-    this
+    return this
   setGain: (value) ->
     @output.gain.value = value
-    this
+    return this
   setName: (name) ->
     @name = name
-    this
+    return this
   trigger: (velocity) ->
     checkVoices(voice, velocity) for own voice in @voices
-    this
+    return this
   destroy: ->
     voice.destroy() for own voice in @voices
     return

@@ -46,27 +46,27 @@ class Drumy.Voice
       )
       return
     request.send()
-    this
+    return this
   loadBuffer: (buffer) ->
     if Array.isArray(buffer)
       @buffer = @context.createBuffer(2, buffer[0].length, @context.sampleRate)
     else 
       @buffer = buffer
-    this
+    return this
   trigger: (velocity) ->
     new Sample(@buffer, velocity, @offset, @velocityMin, @velocityMax, @output, @context)
-    this
+    return this
   setVelocityMax: (velocity) ->
     @velocityMax = velocity if @velocityMin < velocity <= 127
-    this
+    return this
   setVelocityMin: (velocity) ->
     @velocityMin = velocity if 0 <= velocity < @velocityMax
-    this
+    return this
   setGain: (value) ->
     @output.gain.value = value
-    this
+    return this
   setOffset: (offset) ->
     @offset = offset
-    this
+    return this
   destroy: ->
     @output.disconnect(0)
