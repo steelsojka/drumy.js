@@ -5,8 +5,7 @@ checkPad = (pad, note, velocity) ->
   return
 
 class Drumy.Core
-  constructor: (options) ->
-    options or= {}
+  constructor: (options={}) ->
     @context = options.context or new webkitAudioContext()
     @pads = []
     @output = @context.createGainNode()

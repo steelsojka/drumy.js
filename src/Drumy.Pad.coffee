@@ -4,8 +4,7 @@ checkVoices = (voice, velocity) ->
     return
 
 class Drumy.Pad
-  constructor: (options) ->
-    options or= {}
+  constructor: (options={}) ->
     @voices = []
     @context = options.context
     @note = options.note or 32
@@ -23,8 +22,7 @@ class Drumy.Pad
       offset: voice.offset
     })
     return this
-  addVoice: (options) ->
-    options or= {}
+  addVoice: (options={}) ->
     options.context = @context
     options.padOutput = @output
     voice = new Drumy.Voice(options)

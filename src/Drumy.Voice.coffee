@@ -20,8 +20,7 @@ class Sample
 
 
 class Drumy.Voice
-  constructor: (options) ->
-    options or= {}
+  constructor: (option={}) ->
     @velocityMax = options.velocityMax or 127
     @velocityMin = options.velocityMin or 0
     @offset = options.offset or 0
