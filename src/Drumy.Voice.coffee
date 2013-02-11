@@ -11,7 +11,7 @@ class Sample
   trigger: (velocity, min, max) ->
     @source.start(@context.currentTime + @offset)
     @gainNode.gain.value = velocity / 127
-    setTimeout(@destroy.bind(this), @source.buffer.duration * 1000)
+    setTimeout(@destroy.bind(this), (@source.buffer.duration + @offset) * 1000)
     return
   destroy: ->
     @source.disconnect(0)
@@ -22,9 +22,9 @@ class Sample
 class Drumy.Voice
   constructor: (options) ->
     options or= {}
-    @velocityMax = 127
-    @velocityMin = 0
-    @offset = 0
+    @velocityMax = options.velocityMax or 127
+    @velocityMin = options.velocityMin or 0
+    @offset = options.offset or 0
     @context = options.context
     @padOutput = options.padOutput
     # @[key] = option for own key, option of options

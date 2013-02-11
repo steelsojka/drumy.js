@@ -2,6 +2,7 @@
   "pads" : [
     {
       "name" : "Kick",
+      "note" : 36,
       "voices" : [
         {
           "url" : "audio/kick_05.wav",
@@ -13,6 +14,7 @@
       ]
     }, {
       "name" : "Snare",
+      "note" : 38,
       "voices" : [
         {
           "url" : "audio/snare.wav",

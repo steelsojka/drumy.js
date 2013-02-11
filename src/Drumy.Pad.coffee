@@ -7,8 +7,8 @@ class Drumy.Pad
   constructor: (options) ->
     options or= {}
     @voices = []
-    @note = 32
     @context = options.context
+    @note = options.note or 32
     @name = options.name or "Pad"
     # @[key] = option for own key, option of options
   
@@ -20,7 +20,7 @@ class Drumy.Pad
       velocityMin: voice.vMin
       velocityMax: voice.vMax
       gain: 1
-      offset: 0  
+      offset: voice.offset
     })
     return this
   addVoice: (options) ->

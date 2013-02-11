@@ -14,8 +14,8 @@
       var voice, _i, _len, _ref;
       options || (options = {});
       this.voices = [];
-      this.note = 32;
       this.context = options.context;
+      this.note = options.note || 32;
       this.name = options.name || "Pad";
       this.output = this.context.createGainNode();
       if (options.voices) {
@@ -33,7 +33,7 @@
         velocityMin: voice.vMin,
         velocityMax: voice.vMax,
         gain: 1,
-        offset: 0
+        offset: voice.offset
       });
       return this;
     };

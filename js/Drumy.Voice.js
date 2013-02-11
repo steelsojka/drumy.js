@@ -18,7 +18,7 @@
     Sample.prototype.trigger = function(velocity, min, max) {
       this.source.start(this.context.currentTime + this.offset);
       this.gainNode.gain.value = velocity / 127;
-      setTimeout(this.destroy.bind(this), this.source.buffer.duration * 1000);
+      setTimeout(this.destroy.bind(this), (this.source.buffer.duration + this.offset) * 1000);
     };
 
     Sample.prototype.destroy = function() {
@@ -34,9 +34,9 @@
 
     function Voice(options) {
       options || (options = {});
-      this.velocityMax = 127;
-      this.velocityMin = 0;
-      this.offset = 0;
+      this.velocityMax = options.velocityMax || 127;
+      this.velocityMin = options.velocityMin || 0;
+      this.offset = options.offset || 0;
       this.context = options.context;
       this.padOutput = options.padOutput;
       this.output = this.context.createGainNode();
