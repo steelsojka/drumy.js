@@ -22,75 +22,46 @@ _template = (str, data) ->
     fn = new Function("obj", string)
   if data then fn(data) else fn
 
-_isElement = (o) ->
-  if typeof HTMLElement is "object"
-    o instanceof HTMLElement
-  else
-    o and typeof o is "object" and o.nodeType is 1 and typeof o.nodeName is "string"
-
-_addClass = (o, className) -> o.className += " #{className}"
-_removeClass = (o, className) -> o.className = o.className.replace(className, "").trim()
-_addStyle = (o, style, value) -> o.style[style] = value
-
 _prefix = "drumy"
-
-_createElement = (className="") ->
-  div = document.createElement('DIV')
-  div.className = className
-  return div
 
 _padMethods = {
   prefix: _prefix
+  _animCount: 1
   render: (container) ->
-    _temp = document.getElementById("#{@prefix}-pad-template")
-    @container = if _isElement(container) then container else document.querySelector(container)
-    @el = _createElement("drumy-pad")
-    @el.innerHTML = _template(_temp.innerHTML, this)
-    @container.appendChild(@el)
+    $_temp = $("##{@prefix}-pad-template")
+    @$container = $(container)
+    @$el = $('<div class="drumy-pad"></div>')
+    @$el.html(_template($_temp.html(), this))
+    @$container.append(@$el)
+    @$overlay = @$el.find('.drumy-overlay');
     @bindListeners()
   bindListeners: ->
-    @el.addEventListener('click', @onClick.bind(this))
+    @$el.on('click', @onClick.bind(this))
+    @$overlay.on('webkitAnimationEnd', @onAnimationEnd.bind(this))
     @on('sampleStart', @onTrigger)
-    @_addStyle()
-  _addStyle: ->
-    # @el.style.webkitTransition = "background"
   onClick: -> @trigger(127)
   onMouseOver: ->
   onMouseOut: ->
+  onAnimationEnd: (e) ->
   onSampleEnd: (e, voice) ->
-    _removeClass(@el, "drumy-pad-trigger")
+    # _removeClass(@el, "drumy-pad-trigger")
   onTrigger: (e, voice) ->
-    _addClass(@el, "drumy-pad-trigger")
-    _removeClass(@el, "drumy-pad-trigger")
+    @$el.removeClass("drumy-pad-anim#{@_animCount}")
+        .addClass("drumy-pad-anim#{if @_animCount is 1 then 2 else 1}")
+    @_animCount = if @_animCount is 1 then 2 else 1
 }
 
 _coreMethods = {
   prefix: _prefix
   render: (container="body") ->
-    @el = _createElement("drumy-console")
-    @container = if _isElement(container) then container else document.querySelector(container)
-    @container.appendChild(@el)
-    pad.render(@el) for pad in @pads
+    @$el = $('<div class="drumy-console"></div>')
+    @$container = $(container)
+    @$container.append(@$el)
+    pad.render(@$el) for pad in @pads
     return
 }
 
-class Drumy.UI
-  constructor: ->
-  prefix: "drumy"
-  render: (container="body") ->
-    @renderContainer(container)
-    @renderPads(@dContainer)
-  renderPads: (container) ->
-    _temp = document.getElementById("#{@prefix}-pad-template")
-    template = _template(_temp.innerHTML)
-    @dContainer.innerHTML += (template(pad)) for pad in @pads
-    return 
-  renderContainer: (container="body") ->
-    _temp = document.getElementById("#{@prefix}-container-template")
-    @container = document.querySelector(container)
-    @container.innerHTML += _template(_temp.innerHTML, this)
-    @dContainer = document.getElementsByClassName("#{@prefix}-container")[0]
-    return
+Drumy.UI = {}
 
 Drumy.UI.initialize = ->
   Drumy.Pad::[key] = method for own key, method of _padMethods
