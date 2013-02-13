@@ -1,0 +1,35 @@
+@-webkit-keyframes pad-bounce {
+  0% { -webkit-transform: scale(1); }
+  20% { -webkit-transform: scale(0.98);}
+  40% { -webkit-transform: scale(1.02);}
+  60% {-webkit-transform: scale(0.99);}
+  80% {-webkit-transform: scale(1.01);}
+  100% {-webkit-transform: scale(1);}
+}
+@-webkit-keyframes pad-hit {
+  0%, 100% { background-color: #ffffff;}
+  10% {background-color: #000000;}
+}
+
+.drumy-console {
+  width: 100%;
+  height: 100%;
+}
+
+.drumy-pad {
+  width: 30%;
+  height: 30%;
+  float: left;
+  margin: 5px;
+  border: 1px solid #000000;
+  border-radius: 10px;
+  background-color: #ffffff;
+  -webkit-transition: background-color 0.15s ease-in-out;
+}
+
+.drumy-pad-trigger {
+  background-color: black;
+  /*-webkit-animation: pad-hit 0.15s;*/
+}
+.drumy-pad-anim {
+}

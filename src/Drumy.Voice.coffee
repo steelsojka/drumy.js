@@ -1,7 +1,8 @@
 class Sample
-  constructor: (buffer, velocity, offset, min, max, output, context) ->
+  constructor: (buffer, velocity, offset, min, max, output, context, callback) ->
     @context = context
     @offset = offset
+    @callback = callback
     @source = context.createBufferSource()
     @gainNode = context.createGainNode()
     @source.buffer = buffer
@@ -16,11 +17,12 @@ class Sample
   destroy: ->
     @source.disconnect(0)
     @gainNode.disconnect(0)
+    @callback()
     return
 
 
 class Drumy.Voice
-  constructor: (option={}) ->
+  constructor: (options={}) ->
     @velocityMax = options.velocityMax or 127
     @velocityMin = options.velocityMin or 0
     @offset = options.offset or 0
@@ -54,8 +56,11 @@ class Drumy.Voice
       @buffer = buffer
     return this
   trigger: (velocity) ->
-    new Sample(@buffer, velocity, @offset, @velocityMin, @velocityMax, @output, @context)
+    @emit('sampleStart')
+    new Sample(@buffer, velocity, @offset, @velocityMin, @velocityMax, @output, @context, @onSampleDestroy.bind(this))
     return this
+  onSampleDestroy: ->
+    @emit('sampleEnd')
   setVelocityMax: (velocity) ->
     @velocityMax = velocity if @velocityMin < velocity <= 127
     return this
@@ -68,5 +73,8 @@ class Drumy.Voice
   setOffset: (offset) ->
     @offset = offset
     return this
+  getDuration: -> @buffer.duration
   destroy: ->
     @output.disconnect(0)
+
+Drumy.Event.register(Drumy.Voice) if Drumy.Event?

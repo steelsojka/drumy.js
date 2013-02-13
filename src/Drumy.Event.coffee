@@ -1,3 +1,5 @@
+Drumy = {}
+
 class Drumy.Event
   constructor: ->
   on: (events, listener) ->
@@ -12,10 +14,16 @@ class Drumy.Event
       continue if event not in @_events
       @_events[event].splice(@_events[event].indexOf(listener), 1)
     return
-  trigger: (events) ->
+  emit: (events) ->
     @_events or= {}
     for event in events.split(" ")
-      continue if event not in @_events
+      continue if event not of @_events
       for binding in @_events[event]
-        binding.apply(this, Array::slice.call(arguments, 1))
+        binding.apply(this, [{type: event, target: this}].concat(Array::slice.call(arguments, 1)))
     return
+
+Drumy.Event.register = (obj) ->
+  obj::[key] = prop for own key, prop of Drumy.Event::
+  return
+
+@Drumy = Drumy

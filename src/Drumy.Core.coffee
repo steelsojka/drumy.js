@@ -1,5 +1,3 @@
-Drumy = {}
-
 checkPad = (pad, note, velocity) ->
   pad.trigger(velocity) if pad.note is note
   return
@@ -40,7 +38,7 @@ class Drumy.Core
 Drumy.create = (options) ->  
   new Drumy.Core(options)
 
-@Drumy = Drumy;
+Drumy.Event.register(Drumy.Core) if Drumy.Event?
 
 
 

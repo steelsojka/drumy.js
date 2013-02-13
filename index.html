@@ -3,18 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <title></title>
+  <script type="text/javascript" src="js/Drumy.Event.js"></script>
   <script type="text/javascript" src="js/Drumy.Core.js"></script>
   <script type="text/javascript" src="js/Drumy.Pad.js"></script>
   <script type="text/javascript" src="js/Drumy.Voice.js"></script>
+  <script type="text/javascript" src="js/Drumy.UI.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+  <link rel="stylesheet" href="src/ui/Drumy.UI.css">
+  <style>
+    #container {
+      width: 800px;
+      height: 800px;
+    }
+  </style>
 </head>
 <body>
-  
+  <section id="container"></section>
   <script type="text/javascript">
     $(function() {
       window.drums = Drumy.create();
+      Drumy.UI.initialize();
+
       $.get('src/patches/9pad.json', function(e) {
         drums.loadConfig(e);
+        drums.render("#container");
       });
       // drums.addPad().addVoice();
 
@@ -38,4 +50,9 @@
     });
   </script>
 </body>
+
+<script id="drumy-pad-template" type="text/html">
+
+</script>
+
 </html>

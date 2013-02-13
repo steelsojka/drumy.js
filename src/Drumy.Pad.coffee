@@ -3,6 +3,15 @@ checkVoices = (voice, velocity) ->
     voice.trigger(velocity)
     return
 
+_bindVoiceEvents = ->
+  for voice in @voices
+    voice.off('sampleStart sampleEnd', _handleVoiceEvent.bind(this)) 
+    voice.on('sampleStart sampleEnd', _handleVoiceEvent.bind(this))
+  return
+
+_handleVoiceEvent = (e) -> 
+  @emit(e.type, e.target)
+
 class Drumy.Pad
   constructor: (options={}) ->
     @voices = []
@@ -22,11 +31,13 @@ class Drumy.Pad
       offset: voice.offset
     })
     return this
+  
   addVoice: (options={}) ->
     options.context = @context
     options.padOutput = @output
     voice = new Drumy.Voice(options)
     @voices.push(voice)
+    _bindVoiceEvents.call(this)
     return voice
   removeVoice: (index) ->
     if 0 <= index < @voices.length
@@ -52,4 +63,7 @@ class Drumy.Pad
   destroy: ->
     voice.destroy() for own voice in @voices
     return
+
+Drumy.Event.register(Drumy.Pad) if Drumy.Event?
+
 

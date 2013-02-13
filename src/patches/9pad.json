@@ -24,6 +24,31 @@
           "offset" : 0
         }
       ]
+    },
+    {
+      "name" : "Kick",
+      "note" : 36,
+      "voices" : [
+        {
+          "url" : "audio/kick_05.wav",
+          "gain" : 1,
+          "vMin" : 0,
+          "vMax" : 127,
+          "offset" : 0
+        }
+      ]
+    }, {
+      "name" : "Snare",
+      "note" : 38,
+      "voices" : [
+        {
+          "url" : "audio/snare.wav",
+          "gain" : 1,
+          "vMin" : 0,
+          "vMax" : 127,
+          "offset" : 0
+        }
+      ]
     }
   ]
 }
