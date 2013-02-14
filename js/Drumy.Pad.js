@@ -1,9 +1,9 @@
 (function() {
   var checkVoices, _bindVoiceEvents, _handleVoiceEvent;
 
-  checkVoices = function(voice, velocity) {
+  checkVoices = function(voice, velocity, delay) {
     if ((voice.velocityMax >= velocity && velocity >= voice.velocityMin)) {
-      voice.trigger(velocity);
+      voice.trigger(velocity, delay);
     }
   };
 
@@ -121,12 +121,12 @@
       return this;
     };
 
-    Pad.prototype.trigger = function(velocity) {
+    Pad.prototype.trigger = function(velocity, delay) {
       var voice, _i, _len, _ref;
       _ref = this.voices;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         voice = _ref[_i];
-        checkVoices(voice, velocity);
+        checkVoices(voice, velocity, delay);
       }
       return this;
     };

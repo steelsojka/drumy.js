@@ -1,6 +1,6 @@
 {
   "name": "Drumy.js",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": "Steven Sojka",
   "description": "A customizable drum pad console for triggering drum sounds.",
   "contributers": [

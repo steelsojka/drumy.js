@@ -1,6 +1,6 @@
-checkVoices = (voice, velocity) ->
+checkVoices = (voice, velocity, delay) ->
   if voice.velocityMax >= velocity >= voice.velocityMin
-    voice.trigger(velocity)
+    voice.trigger(velocity, delay)
     return
 
 _bindVoiceEvents = ->
@@ -68,8 +68,8 @@ class Drumy.Pad
   setName: (name) ->
     @name = name
     return this
-  trigger: (velocity) ->
-    checkVoices(voice, velocity) for own voice in @voices
+  trigger: (velocity, delay) ->
+    checkVoices(voice, velocity, delay) for own voice in @voices
     return this
   destroy: ->
     voice.destroy() for own voice in @voices

@@ -16,7 +16,7 @@
 
   Sample = (function() {
 
-    function Sample(buffer, velocity, offset, min, max, output, context, callback) {
+    function Sample(buffer, velocity, offset, min, max, output, context, delay, callback) {
       this.context = context;
       this.offset = offset;
       this.callback = callback;
@@ -29,7 +29,7 @@
     }
 
     Sample.prototype.trigger = function(velocity, min, max) {
-      this.source.start(this.context.currentTime + this.offset);
+      this.source.start(this.context.currentTime + this.delay + this.offset);
       this.gainNode.gain.value = velocity / 127;
       setTimeout(this.destroy.bind(this), (this.source.buffer.duration + this.offset) * 1000);
     };
@@ -116,12 +116,12 @@
       return this;
     };
 
-    Voice.prototype.trigger = function(velocity) {
+    Voice.prototype.trigger = function(velocity, delay) {
       this.emit('sampleStart');
       if (Math.random() < this.alternateRate && this.alternates.length > 0) {
         this.alternates[_getRandomInt(0, this.alternates.length - 1)].trigger(velocity);
       } else {
-        new Sample(this.buffer, velocity, this.offset, this.velocityMin, this.velocityMax, this.output, this.context, this.onSampleDestroy.bind(this));
+        new Sample(this.buffer, velocity, this.offset, this.velocityMin, this.velocityMax, this.output, this.context, delay, this.onSampleDestroy.bind(this));
       }
       return this;
     };

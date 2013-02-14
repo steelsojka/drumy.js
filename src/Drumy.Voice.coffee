@@ -8,7 +8,7 @@ _ajax = (url, callback) ->
 _getRandomInt = (min, max) -> Math.floor(Math.random() * (max - min + 1)) + min
 
 class Sample
-  constructor: (buffer, velocity, offset, min, max, output, context, callback) ->
+  constructor: (buffer, velocity, offset, min, max, output, context, delay, callback) ->
     @context = context
     @offset = offset
     @callback = callback
@@ -19,7 +19,7 @@ class Sample
     @gainNode.connect(output)
     @trigger(velocity, min, max)
   trigger: (velocity, min, max) ->
-    @source.start(@context.currentTime + @offset)
+    @source.start(@context.currentTime + @delay + @offset)
     @gainNode.gain.value = velocity / 127
     setTimeout(@destroy.bind(this), (@source.buffer.duration + @offset) * 1000)
     return
@@ -79,12 +79,12 @@ class Drumy.Voice
     else 
       @buffer = buffer
     return this
-  trigger: (velocity) ->
+  trigger: (velocity, delay) ->
     @emit('sampleStart')
     if Math.random() < @alternateRate and @alternates.length > 0
       @alternates[_getRandomInt(0, @alternates.length - 1)].trigger(velocity)
     else
-      new Sample(@buffer, velocity, @offset, @velocityMin, @velocityMax, @output, @context, @onSampleDestroy.bind(this))
+      new Sample(@buffer, velocity, @offset, @velocityMin, @velocityMax, @output, @context, delay, @onSampleDestroy.bind(this))
     return this
   onSampleDestroy: -> @emit('sampleEnd')
   setVelocityMax: (velocity) ->

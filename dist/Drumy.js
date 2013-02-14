@@ -1,5 +1,5 @@
 /**
- * Drumy.js v0.2.2
+ * Drumy.js v0.2.3
  *
  * A customizable drum pad console for triggering drum sounds.
  * @author Steven Sojka - Thursday, February 14, 2013
@@ -80,8 +80,8 @@
   var checkPad,
     __hasProp = Object.prototype.hasOwnProperty;
 
-  checkPad = function(pad, note, velocity) {
-    if (pad.note.indexOf(note) !== -1) pad.trigger(velocity);
+  checkPad = function(pad, note, velocity, delay) {
+    if (pad.note.indexOf(note) !== -1) pad.trigger(velocity, delay);
   };
 
   Drumy.Core = (function() {
@@ -155,12 +155,12 @@
       return this.context;
     };
 
-    Core.prototype.trigger = function(note, velocity) {
+    Core.prototype.trigger = function(note, velocity, delay) {
       var pad, _i, _len, _ref;
       _ref = this.pads;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pad = _ref[_i];
-        checkPad(pad, note, velocity);
+        checkPad(pad, note, velocity, delay);
       }
       return this;
     };
@@ -179,9 +179,9 @@
 (function() {
   var checkVoices, _bindVoiceEvents, _handleVoiceEvent;
 
-  checkVoices = function(voice, velocity) {
+  checkVoices = function(voice, velocity, delay) {
     if ((voice.velocityMax >= velocity && velocity >= voice.velocityMin)) {
-      voice.trigger(velocity);
+      voice.trigger(velocity, delay);
     }
   };
 
@@ -299,12 +299,12 @@
       return this;
     };
 
-    Pad.prototype.trigger = function(velocity) {
+    Pad.prototype.trigger = function(velocity, delay) {
       var voice, _i, _len, _ref;
       _ref = this.voices;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         voice = _ref[_i];
-        checkVoices(voice, velocity);
+        checkVoices(voice, velocity, delay);
       }
       return this;
     };
@@ -343,7 +343,7 @@
 
   Sample = (function() {
 
-    function Sample(buffer, velocity, offset, min, max, output, context, callback) {
+    function Sample(buffer, velocity, offset, min, max, output, context, delay, callback) {
       this.context = context;
       this.offset = offset;
       this.callback = callback;
@@ -356,7 +356,7 @@
     }
 
     Sample.prototype.trigger = function(velocity, min, max) {
-      this.source.start(this.context.currentTime + this.offset);
+      this.source.start(this.context.currentTime + this.delay + this.offset);
       this.gainNode.gain.value = velocity / 127;
       setTimeout(this.destroy.bind(this), (this.source.buffer.duration + this.offset) * 1000);
     };
@@ -443,12 +443,12 @@
       return this;
     };
 
-    Voice.prototype.trigger = function(velocity) {
+    Voice.prototype.trigger = function(velocity, delay) {
       this.emit('sampleStart');
       if (Math.random() < this.alternateRate && this.alternates.length > 0) {
         this.alternates[_getRandomInt(0, this.alternates.length - 1)].trigger(velocity);
       } else {
-        new Sample(this.buffer, velocity, this.offset, this.velocityMin, this.velocityMax, this.output, this.context, this.onSampleDestroy.bind(this));
+        new Sample(this.buffer, velocity, this.offset, this.velocityMin, this.velocityMax, this.output, this.context, delay, this.onSampleDestroy.bind(this));
       }
       return this;
     };

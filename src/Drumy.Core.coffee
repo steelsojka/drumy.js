@@ -1,5 +1,5 @@
-checkPad = (pad, note, velocity) ->
-  pad.trigger(velocity) if pad.note.indexOf(note) isnt -1
+checkPad = (pad, note, velocity, delay) ->
+  pad.trigger(velocity, delay) if pad.note.indexOf(note) isnt -1
   return
 
 class Drumy.Core
@@ -34,8 +34,8 @@ class Drumy.Core
     @output.connect(node)
     return this
   getContext: -> @context
-  trigger: (note, velocity) ->
-    checkPad(pad, note, velocity) for pad in @pads
+  trigger: (note, velocity, delay) ->
+    checkPad(pad, note, velocity, delay) for pad in @pads
     return this
 
 Drumy.create = (options) ->  
