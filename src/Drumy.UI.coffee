@@ -27,27 +27,28 @@ _prefix = "drumy"
 _padMethods = {
   prefix: _prefix
   _animCount: 1
+  glow: true
+  animation: true
   render: (container) ->
     $_temp = $("##{@prefix}-pad-template")
     @$container = $(container)
-    @$el = $('<div class="drumy-pad"></div>')
+    @$el = $('<div class="drumy-pad-container"></div>')
     @$el.html(_template($_temp.html(), this))
     @$container.append(@$el)
-    @$overlay = @$el.find('.drumy-overlay');
+    @$pad = @$el.find('.drumy-pad')
+    @$overlay = @$el.find('.drumy-overlay > div');
     @bindListeners()
   bindListeners: ->
     @$el.on('click', @onClick.bind(this))
-    @$overlay.on('webkitAnimationEnd', @onAnimationEnd.bind(this))
     @on('sampleStart', @onTrigger)
   onClick: -> @trigger(127)
-  onMouseOver: ->
-  onMouseOut: ->
-  onAnimationEnd: (e) ->
-  onSampleEnd: (e, voice) ->
-    # _removeClass(@el, "drumy-pad-trigger")
   onTrigger: (e, voice) ->
-    @$el.removeClass("drumy-pad-anim#{@_animCount}")
-        .addClass("drumy-pad-anim#{if @_animCount is 1 then 2 else 1}")
+    if @animation
+      @$el.removeClass("drumy-pad-anim#{@_animCount}")
+          .addClass("drumy-pad-anim#{if @_animCount is 1 then 2 else 1}")
+    if @glow
+      @$overlay.removeClass("drumy-overlay-anim#{@_animCount}")
+               .addClass("drumy-overlay-anim#{if @_animCount is 1 then 2 else 1}")
     @_animCount = if @_animCount is 1 then 2 else 1
 }
 
@@ -58,6 +59,12 @@ _coreMethods = {
     @$container = $(container)
     @$container.append(@$el)
     pad.render(@$el) for pad in @pads
+    return
+  setGlow: (bool) -> 
+    pad.glow = bool for pad in @pads
+    return
+  setAnimation: (bool) -> 
+    pad.animation = bool for pad in @pads
     return
 }
 

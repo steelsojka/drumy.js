@@ -15,23 +15,29 @@ _handleVoiceEvent = (e) ->
 class Drumy.Pad
   constructor: (options={}) ->
     @voices = []
+    @note = []
     @context = options.context
-    @note = options.note or 32
     @name = options.name or "Pad"
+    if Array.isArray(options.note)
+      @note = @note.concat(options.note)
+    else if options.note
+      @note.push(options.note)
+    else
+      @note.push(32)
+    
     # @[key] = option for own key, option of options
   
     @output = @context.createGainNode();
     @loadVoice(voice) for voice in options.voices if options.voices
   loadVoice: (voice) ->
-    @addVoice({
-      url: voice.url
-      velocityMin: voice.vMin
-      velocityMax: voice.vMax
-      gain: 1
-      offset: voice.offset
-    })
+    @addVoice(voice)
     return this
-  
+  save: ->
+    {
+      "name": @name
+      "note": @note
+      "voices": voice.save() for voice in @voices
+    }
   addVoice: (options={}) ->
     options.context = @context
     options.padOutput = @output
@@ -47,9 +53,14 @@ class Drumy.Pad
       @voices.splice(i, 1)
     return this
   getVoice: (index) ->
-    @voices[index] if 0 <= index < @voices.length   
+    @voices[index] if 0 <= index < @voices.length 
   setNoteNumber: (number) ->
-    @note = number if 0 <= number <= 127
+    @note.push(number) if 0 <= number <= 127 and @note.indexOf(number) is -1
+    return this
+  removeNoteNumber: (number) ->
+    index = @note.indexOf(number)
+    return if index is -1
+    @note.splice(index, 1)
     return this
   setGain: (value) ->
     @output.gain.value = value

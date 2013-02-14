@@ -1,19 +1,87 @@
 /**
- * Drumy.js v0.1
+ * Drumy.js v0.2
  *
  * A customizable drum pad console for trigger drum sounds
- * @author Steven Sojka - Tuesday, February 12, 2013
+ * @author Steven Sojka - Thursday, February 14, 2013
  *
  * MIT Licensed
  */
 (function() {
-  var Drumy, checkPad,
+  var Drumy,
+    __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __hasProp = Object.prototype.hasOwnProperty;
 
   Drumy = {};
 
+  Drumy.Event = (function() {
+
+    function Event() {}
+
+    Event.prototype.on = function(events, listener) {
+      var event, _base, _i, _len, _ref;
+      this._events || (this._events = {});
+      _ref = events.split(" ");
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        event = _ref[_i];
+        (_base = this._events)[event] || (_base[event] = []);
+        this._events[event].push(listener);
+      }
+    };
+
+    Event.prototype.off = function(events, listener) {
+      var event, _i, _len, _ref;
+      this._events || (this._events = {});
+      _ref = events.split(" ");
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        event = _ref[_i];
+        if (__indexOf.call(this._events, event) < 0) continue;
+        this._events[event].splice(this._events[event].indexOf(listener), 1);
+      }
+    };
+
+    Event.prototype.emit = function(events) {
+      var binding, event, _i, _j, _len, _len2, _ref, _ref2;
+      this._events || (this._events = {});
+      _ref = events.split(" ");
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        event = _ref[_i];
+        if (!(event in this._events)) continue;
+        _ref2 = this._events[event];
+        for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+          binding = _ref2[_j];
+          binding.apply(this, [
+            {
+              type: event,
+              target: this
+            }
+          ].concat(Array.prototype.slice.call(arguments, 1)));
+        }
+      }
+    };
+
+    return Event;
+
+  })();
+
+  Drumy.Event.register = function(obj) {
+    var key, prop, _ref;
+    _ref = Drumy.Event.prototype;
+    for (key in _ref) {
+      if (!__hasProp.call(_ref, key)) continue;
+      prop = _ref[key];
+      obj.prototype[key] = prop;
+    }
+  };
+
+  this.Drumy = Drumy;
+
+}).call(this);
+(function() {
+  var checkPad,
+    __hasProp = Object.prototype.hasOwnProperty;
+
   checkPad = function(pad, note, velocity) {
-    if (pad.note === note) pad.trigger(velocity);
+    if (pad.note.indexOf(note) !== -1) pad.trigger(velocity);
   };
 
   Drumy.Core = (function() {
@@ -40,6 +108,23 @@
         this.addPad(pad);
       }
       return this;
+    };
+
+    Core.prototype.save = function() {
+      var pad, _pads;
+      _pads = (function() {
+        var _i, _len, _ref, _results;
+        _ref = this.pads;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          pad = _ref[_i];
+          _results.push(pad.save());
+        }
+        return _results;
+      }).call(this);
+      return JSON.stringify({
+        pads: _pads
+      });
     };
 
     Core.prototype.addPad = function(options) {
@@ -88,16 +173,30 @@
     return new Drumy.Core(options);
   };
 
-  this.Drumy = Drumy;
+  if (Drumy.Event != null) Drumy.Event.register(Drumy.Core);
 
 }).call(this);
 (function() {
-  var checkVoices;
+  var checkVoices, _bindVoiceEvents, _handleVoiceEvent;
 
   checkVoices = function(voice, velocity) {
     if ((voice.velocityMax >= velocity && velocity >= voice.velocityMin)) {
       voice.trigger(velocity);
     }
+  };
+
+  _bindVoiceEvents = function() {
+    var voice, _i, _len, _ref;
+    _ref = this.voices;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      voice = _ref[_i];
+      voice.off('sampleStart sampleEnd', _handleVoiceEvent.bind(this));
+      voice.on('sampleStart sampleEnd', _handleVoiceEvent.bind(this));
+    }
+  };
+
+  _handleVoiceEvent = function(e) {
+    return this.emit(e.type, e.target);
   };
 
   Drumy.Pad = (function() {
@@ -106,9 +205,16 @@
       var voice, _i, _len, _ref;
       if (options == null) options = {};
       this.voices = [];
+      this.note = [];
       this.context = options.context;
-      this.note = options.note || 32;
       this.name = options.name || "Pad";
+      if (Array.isArray(options.note)) {
+        this.note = this.note.concat(options.note);
+      } else if (options.note) {
+        this.note.push(options.note);
+      } else {
+        this.note.push(32);
+      }
       this.output = this.context.createGainNode();
       if (options.voices) {
         _ref = options.voices;
@@ -120,14 +226,26 @@
     }
 
     Pad.prototype.loadVoice = function(voice) {
-      this.addVoice({
-        url: voice.url,
-        velocityMin: voice.vMin,
-        velocityMax: voice.vMax,
-        gain: 1,
-        offset: voice.offset
-      });
+      this.addVoice(voice);
       return this;
+    };
+
+    Pad.prototype.save = function() {
+      var voice;
+      return {
+        "name": this.name,
+        "note": this.note,
+        "voices": (function() {
+          var _i, _len, _ref, _results;
+          _ref = this.voices;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            voice = _ref[_i];
+            _results.push(voice.save());
+          }
+          return _results;
+        }).call(this)
+      };
     };
 
     Pad.prototype.addVoice = function(options) {
@@ -137,6 +255,7 @@
       options.padOutput = this.output;
       voice = new Drumy.Voice(options);
       this.voices.push(voice);
+      _bindVoiceEvents.call(this);
       return voice;
     };
 
@@ -156,7 +275,17 @@
     };
 
     Pad.prototype.setNoteNumber = function(number) {
-      if ((0 <= number && number <= 127)) this.note = number;
+      if ((0 <= number && number <= 127) && this.note.indexOf(number) === -1) {
+        this.note.push(number);
+      }
+      return this;
+    };
+
+    Pad.prototype.removeNoteNumber = function(number) {
+      var index;
+      index = this.note.indexOf(number);
+      if (index === -1) return;
+      this.note.splice(index, 1);
       return this;
     };
 
@@ -193,15 +322,31 @@
 
   })();
 
+  if (Drumy.Event != null) Drumy.Event.register(Drumy.Pad);
+
 }).call(this);
 (function() {
-  var Sample;
+  var Sample, _ajax, _getRandomInt;
+
+  _ajax = function(url, callback) {
+    var request;
+    request = new XMLHttpRequest();
+    request.open('GET', url);
+    request.responseType = 'arraybuffer';
+    request.onload = callback;
+    return request.send();
+  };
+
+  _getRandomInt = function(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
 
   Sample = (function() {
 
-    function Sample(buffer, velocity, offset, min, max, output, context) {
+    function Sample(buffer, velocity, offset, min, max, output, context, callback) {
       this.context = context;
       this.offset = offset;
+      this.callback = callback;
       this.source = context.createBufferSource();
       this.gainNode = context.createGainNode();
       this.source.buffer = buffer;
@@ -219,6 +364,7 @@
     Sample.prototype.destroy = function() {
       this.source.disconnect(0);
       this.gainNode.disconnect(0);
+      this.callback();
     };
 
     return Sample;
@@ -227,33 +373,64 @@
 
   Drumy.Voice = (function() {
 
-    function Voice(option) {
-      if (option == null) option = {};
+    function Voice(options) {
+      var alt, _i, _len, _ref;
+      if (options == null) options = {};
       this.velocityMax = options.velocityMax || 127;
       this.velocityMin = options.velocityMin || 0;
       this.offset = options.offset || 0;
+      this.alternateRate = options.alternateRate || 0.25;
       this.context = options.context;
+      this.alternates = [];
       this.padOutput = options.padOutput;
+      this.url = options.url || "";
+      this.gain = options.gain || 1;
       this.output = this.context.createGainNode();
       this.output.connect(this.padOutput);
       if (options.gain) this.setGain(options.gain);
       if (options.url) this.loadFromUrl(options.url);
       if (this.buffer) this.loadBuffer(this.buffer);
+      if (options.alternates) {
+        _ref = options.alternates;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          alt = _ref[_i];
+          alt.context = this.context;
+          alt.padOutput = this.padOutput;
+          this.alternates.push(new Drumy.Voice(alt));
+        }
+      }
     }
 
+    Voice.prototype.save = function() {
+      var voice;
+      return {
+        "url": this.url,
+        "gain": this.gain,
+        "velocityMin": this.velocityMin,
+        "velocityMax": this.velocityMax,
+        "offset": this.offset,
+        "alternateRate": this.alternateRate,
+        "alternates": (function() {
+          var _i, _len, _ref, _results;
+          _ref = this.alternates;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            voice = _ref[_i];
+            _results.push(voice.save());
+          }
+          return _results;
+        }).call(this)
+      };
+    };
+
     Voice.prototype.loadFromUrl = function(url, callback) {
-      var request,
-        _this = this;
-      request = new XMLHttpRequest();
-      request.open('GET', url);
-      request.responseType = 'arraybuffer';
-      request.onload = function(res) {
+      var _this = this;
+      _ajax(url, function(res) {
         _this.context.decodeAudioData(res.currentTarget.response, function(buff) {
           _this.loadBuffer(buff);
           if (typeof callback === "function") callback();
         });
-      };
-      request.send();
+      });
       return this;
     };
 
@@ -267,8 +444,17 @@
     };
 
     Voice.prototype.trigger = function(velocity) {
-      new Sample(this.buffer, velocity, this.offset, this.velocityMin, this.velocityMax, this.output, this.context);
+      this.emit('sampleStart');
+      if (Math.random() < this.alternateRate && this.alternates.length > 0) {
+        this.alternates[_getRandomInt(0, this.alternates.length - 1)].trigger(velocity);
+      } else {
+        new Sample(this.buffer, velocity, this.offset, this.velocityMin, this.velocityMax, this.output, this.context, this.onSampleDestroy.bind(this));
+      }
       return this;
+    };
+
+    Voice.prototype.onSampleDestroy = function() {
+      return this.emit('sampleEnd');
     };
 
     Voice.prototype.setVelocityMax = function(velocity) {
@@ -295,6 +481,10 @@
       return this;
     };
 
+    Voice.prototype.getDuration = function() {
+      return this.buffer.duration;
+    };
+
     Voice.prototype.destroy = function() {
       return this.output.disconnect(0);
     };
@@ -302,5 +492,7 @@
     return Voice;
 
   })();
+
+  if (Drumy.Event != null) Drumy.Event.register(Drumy.Voice);
 
 }).call(this);

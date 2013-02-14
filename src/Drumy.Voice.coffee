@@ -1,3 +1,12 @@
+_ajax = (url, callback) ->
+  request = new XMLHttpRequest()
+  request.open('GET', url)
+  request.responseType = 'arraybuffer'
+  request.onload = callback
+  request.send()
+
+_getRandomInt = (min, max) -> Math.floor(Math.random() * (max - min + 1)) + min
+
 class Sample
   constructor: (buffer, velocity, offset, min, max, output, context, callback) ->
     @context = context
@@ -26,9 +35,12 @@ class Drumy.Voice
     @velocityMax = options.velocityMax or 127
     @velocityMin = options.velocityMin or 0
     @offset = options.offset or 0
+    @alternateRate = options.alternateRate or 0.25
     @context = options.context
+    @alternates = []
     @padOutput = options.padOutput
-    # @[key] = option for own key, option of options
+    @url = options.url or ""
+    @gain = options.gain or 1
 
     @output = @context.createGainNode()
     @output.connect(@padOutput)
@@ -36,18 +48,30 @@ class Drumy.Voice
     @setGain(options.gain) if options.gain
     @loadFromUrl(options.url) if options.url
     @loadBuffer(@buffer) if @buffer
+
+    if options.alternates
+      for alt in options.alternates
+        alt.context = @context
+        alt.padOutput = @padOutput
+        @alternates.push(new Drumy.Voice(alt)) 
+  save: ->
+    {
+      "url" : @url,
+      "gain" : @gain,
+      "velocityMin" : @velocityMin,
+      "velocityMax" : @velocityMax,
+      "offset" : @offset,
+      "alternateRate" : @alternateRate
+      "alternates": voice.save() for voice in @alternates
+    }
   loadFromUrl: (url, callback) ->
-    request = new XMLHttpRequest()
-    request.open('GET', url)
-    request.responseType = 'arraybuffer'
-    request.onload = (res) =>
+    _ajax url, (res) =>
       @context.decodeAudioData(res.currentTarget.response, (buff) =>
         @loadBuffer(buff)
         callback?()
         return
       )
       return
-    request.send()
     return this
   loadBuffer: (buffer) ->
     if Array.isArray(buffer)
@@ -57,10 +81,12 @@ class Drumy.Voice
     return this
   trigger: (velocity) ->
     @emit('sampleStart')
-    new Sample(@buffer, velocity, @offset, @velocityMin, @velocityMax, @output, @context, @onSampleDestroy.bind(this))
+    if Math.random() < @alternateRate and @alternates.length > 0
+      @alternates[_getRandomInt(0, @alternates.length - 1)].trigger(velocity)
+    else
+      new Sample(@buffer, velocity, @offset, @velocityMin, @velocityMax, @output, @context, @onSampleDestroy.bind(this))
     return this
-  onSampleDestroy: ->
-    @emit('sampleEnd')
+  onSampleDestroy: -> @emit('sampleEnd')
   setVelocityMax: (velocity) ->
     @velocityMax = velocity if @velocityMin < velocity <= 127
     return this

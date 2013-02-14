@@ -1,5 +1,5 @@
 checkPad = (pad, note, velocity) ->
-  pad.trigger(velocity) if pad.note is note
+  pad.trigger(velocity) if pad.note.indexOf(note) isnt -1
   return
 
 class Drumy.Core
@@ -14,6 +14,9 @@ class Drumy.Core
   loadConfig: (configJSON) ->
     @addPad(pad) for pad in configJSON.pads
     return this
+  save: ->
+    _pads = (pad.save() for pad in @pads)
+    return JSON.stringify({pads : _pads})
   addPad: (options) ->
     options or= {}
     options.context = @context

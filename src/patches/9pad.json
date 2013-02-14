@@ -5,10 +5,10 @@
       "note" : 36,
       "voices" : [
         {
-          "url" : "audio/kick_05.wav",
+          "url" : "audio/kick.wav",
           "gain" : 1,
-          "vMin" : 0,
-          "vMax" : 127,
+          "velocityMin" : 0,
+          "velocityMax" : 127,
           "offset" : 0
         }
       ]
@@ -17,23 +17,50 @@
       "note" : 38,
       "voices" : [
         {
-          "url" : "audio/snare.wav",
+          "url" : "audio/snare1.wav",
           "gain" : 1,
-          "vMin" : 0,
-          "vMax" : 127,
-          "offset" : 0
+          "velocityMin" : 0,
+          "velocityMax" : 127,
+          "offset" : 0,
+          "alternateRate" : 0.2,
+          "alternates" : [
+            {
+              "url" : "audio/snare1_alt.wav",
+              "gain" : 1,
+              "offset" : 0
+            }
+          ]
         }
       ]
-    },
-    {
+    }, {
+      "name" : "Hihat",
+      "note" : [42, 22],
+      "voices" : [
+        {
+          "url" : "audio/Hat_closed_low.wav",
+          "gain" : 1,
+          "velocityMin" : 0,
+          "velocityMax" : 127,
+          "offset" : 0,
+          "alternateRate" : 0.25,
+          "alternates" : [
+            { 
+              "url" : "audio/Hat_closed_high.wav",
+              "gain" : 1,
+              "offset" : 0
+            }
+          ]
+        }
+      ]
+    },{
       "name" : "Kick",
       "note" : 36,
       "voices" : [
         {
-          "url" : "audio/kick_05.wav",
+          "url" : "audio/kick.wav",
           "gain" : 1,
-          "vMin" : 0,
-          "vMax" : 127,
+          "velocityMin" : 0,
+          "velocityMax" : 127,
           "offset" : 0
         }
       ]
@@ -42,11 +69,91 @@
       "note" : 38,
       "voices" : [
         {
-          "url" : "audio/snare.wav",
+          "url" : "audio/snare1.wav",
           "gain" : 1,
-          "vMin" : 0,
-          "vMax" : 127,
+          "velocityMin" : 0,
+          "velocityMax" : 127,
+          "offset" : 0,
+          "alternateRate" : 0.2,
+          "alternates" : [
+            {
+              "url" : "audio/snare1_alt.wav",
+              "gain" : 1,
+              "offset" : 0
+            }
+          ]
+        }
+      ]
+    }, {
+      "name" : "Hihat",
+      "note" : [42, 22],
+      "voices" : [
+        {
+          "url" : "audio/Hat_closed_low.wav",
+          "gain" : 1,
+          "velocityMin" : 0,
+          "velocityMax" : 127,
+          "offset" : 0,
+          "alternateRate" : 0.25,
+          "alternates" : [
+            { 
+              "url" : "audio/Hat_closed_high.wav",
+              "gain" : 1,
+              "offset" : 0
+            }
+          ]
+        }
+      ]
+    }, {
+      "name" : "Kick",
+      "note" : 36,
+      "voices" : [
+        {
+          "url" : "audio/kick.wav",
+          "gain" : 1,
+          "velocityMin" : 0,
+          "velocityMax" : 127,
           "offset" : 0
+        }
+      ]
+    }, {
+      "name" : "Snare",
+      "note" : 38,
+      "voices" : [
+        {
+          "url" : "audio/snare1.wav",
+          "gain" : 1,
+          "velocityMin" : 0,
+          "velocityMax" : 127,
+          "offset" : 0,
+          "alternateRate" : 0.2,
+          "alternates" : [
+            {
+              "url" : "audio/snare1_alt.wav",
+              "gain" : 1,
+              "offset" : 0
+            }
+          ]
+        }
+      ]
+    }, {
+      "name" : "Hihat",
+      "note" : [42, 22],
+      "voices" : [
+        {
+          "url" : "audio/Hat_closed_low.wav",
+          "gain" : 1,
+          "velocityMin" : 0,
+          "velocityMax" : 127,
+          "offset" : 0,
+          "alternateRate" : 0.25,
+          "alternates" : [
+            { 
+              "url" : "audio/Hat_closed_high.wav",
+              "gain" : 1,
+              "offset" : 0
+            }
+          ]
         }
       ]
     }

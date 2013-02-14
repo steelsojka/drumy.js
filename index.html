@@ -9,6 +9,7 @@
   <script type="text/javascript" src="js/Drumy.Voice.js"></script>
   <script type="text/javascript" src="js/Drumy.UI.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+  <script src="https://bitbucket.org/steelsojka/jmid.js/raw/cab87e7925f441819c00536cc7b4b78d595a2ed6/dist/jMID.min.js"></script>
   <link rel="stylesheet" href="src/ui/Drumy.UI.css">
   <style>
     #container {
@@ -19,40 +20,44 @@
 </head>
 <body>
   <section id="container"></section>
+  <input type="file"></input>
+
   <script type="text/javascript">
+    var handleChange = function(e) {
+      var files = e.target.files;
+      var reader = new FileReader();
+
+      reader.onload = function(e) {
+        window.context = new webkitAudioContext();
+        window.stream = new jMID.Stream(e.target.result);
+        window.decoder = new jMID.Decoder();
+        window.file = decoder.decode(stream);
+        window.player = new jMID.Player({
+          file : file,
+          context : context
+        });
+
+        player.on('event', function(e) {
+          if (e.subtype === "noteOn") {
+            drums.trigger(e.noteNumber, e.velocity)
+          }
+        });
+      };
+
+      reader.readAsBinaryString(files[0]);
+    };
+
     $(function() {
       window.drums = Drumy.create();
       Drumy.UI.initialize();
 
       $.get('src/patches/9pad.json', function(e) {
-        drums.loadConfig(e);
-        drums.render("#container");
+          drums.loadConfig(e);
+          drums.render("#container");
       });
-      // drums.addPad().addVoice();
 
-      // var request = new XMLHttpRequest();
-      // request.open('GET', 'audio/kick_05.wav');
-      // request.responseType = "arraybuffer";
-      // request.onload = function(e) {
-      //   var buffer = e.currentTarget.response;
-      //   drums.getContext().decodeAudioData(buffer, function(e) {
-      //     drums.getPad(0).getVoice(0).loadBuffer(e);
-      //     drums.trigger(32, 100);
-      //     setTimeout(function() {
-      //       drums.trigger(32, 100)
-      //     }, 10);
-      //     setTimeout(function() {
-      //       drums.trigger(32, 100)
-      //     }, 50);
-      //   });
-      // };
-      // request.send();
+      document.querySelector('input').addEventListener('change', handleChange, false);
     });
   </script>
 </body>
-
-<script id="drumy-pad-template" type="text/html">
-  <div class="drumy-overlay"></div>
-</script>
-
 </html>

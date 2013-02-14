@@ -1,22 +1,30 @@
 exec = require('child_process').exec
 fs = require('fs')
+wrench = require('./build/wrench')
 
 CLOSURE_PATH = "build/compiler.jar"
 JS_DIR = "js/"
 COFFEE_DIR = "src/"
 DIST_DIR = "dist/"
+UI_DIR = "src/ui"
 CONCAT_OUTPUT = "#{DIST_DIR}Drumy.js"
 MINIFIED_OUTPUT = "#{DIST_DIR}Drumy.min.js"
 HEADER_FILES = [
   CONCAT_OUTPUT
   MINIFIED_OUTPUT
+  "#{DIST_DIR}Drumy.UI.min.js"
 ]
-VERSION = 0.1
+VERSION = 0.2
 
 JS_FILES = [
+  "Drumy.Event.js"
   "Drumy.Core.js"
   "Drumy.Pad.js"
   "Drumy.Voice.js"
+]
+
+JS_EXTRAS = [
+  "Drumy.UI.js"
 ]
 
 HEADER = ["/**" 
@@ -46,7 +54,17 @@ concat = (callback) ->
   exec("cat #{files.join(" ")} > #{CONCAT_OUTPUT}", callback)
   return
 
-minify = (callback) ->
+minifyExtras = (callback) ->
+  asyncLoop(
+    length: JS_EXTRAS.length
+    func: (next, i) ->
+      file = JS_EXTRAS[i]
+      exec("java -jar #{CLOSURE_PATH} --js #{JS_DIR + file} --js_output_file #{DIST_DIR + file.replace(".js", ".min.js")}", next)
+    callback: -> 
+      callback?()
+  )
+
+minifyCore = (callback) ->
   console.log("Minifying files...")
   exec("java -jar #{CLOSURE_PATH} --js #{CONCAT_OUTPUT} --js_output_file #{MINIFIED_OUTPUT}", callback)
   return
@@ -77,27 +95,26 @@ prependHeader = (file, callback) ->
   return
 
 task "concat", "Concat the compiled JS", concat
-task "minify", "Minify the compiled JS", minify
+task "minifyCore", "Minify the compiled JS", minifyCore
+task "minifyExtras", "Minify non core files", minifyExtras
 task "compile", "Compile the coffeescript", compile
 task "clean", "Clean distribution directory", clean
 task "build", "Build the project", ->
   clean ->
     compile ->
       concat ->
-        minify ->
-          asyncLoop({
-            length: HEADER_FILES.length
-            func: (next, i) ->
-              prependHeader(HEADER_FILES[i], -> next())
-              return
-            callback: ->
-              console.log("Build finished")
-          })
-          return
-        return
-      return
-    return
-  return
-        
+        minifyCore ->
+          minifyExtras ->
+            asyncLoop(
+              length: HEADER_FILES.length
+              func: (next, i) ->
+                prependHeader(HEADER_FILES[i], -> next())
+                return
+              callback: ->
+                console.log("Copying UI directory... #{UI_DIR} to #{DIST_DIR}ui")
+                wrench.copyDirSyncRecursive(UI_DIR, "#{DIST_DIR}ui")
+                console.log("Build finished")
+            )
+     
   
 
