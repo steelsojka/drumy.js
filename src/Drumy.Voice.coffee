@@ -35,7 +35,7 @@ class Drumy.Voice
     @velocityMax = options.velocityMax or 127
     @velocityMin = options.velocityMin or 0
     @offset = options.offset or 0
-    @alternateRate = options.alternateRate or 0.25
+    @alternateRate = if options.alternateRate? then options.alternateRate else 0.25
     @context = options.context
     @alternates = []
     @padOutput = options.padOutput

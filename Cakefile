@@ -14,7 +14,7 @@ HEADER_FILES = [
   MINIFIED_OUTPUT
   "#{DIST_DIR}Drumy.UI.min.js"
 ]
-VERSION = 0.2
+VERSION = ""
 
 JS_FILES = [
   "Drumy.Event.js"
@@ -28,12 +28,12 @@ JS_EXTRAS = [
 ]
 
 HEADER = ["/**" 
-          " * @FILENAME@ v#{VERSION}"
+          " * @FILENAME@ v@VERSION@"
           " *"
-          " * A customizable drum pad console for trigger drum sounds"
-          " * @author Steven Sojka - #{new Date().toLocaleDateString()}"
+          " * @DESCRIPTION@"
+          " * @author @AUTHOR@ - #{new Date().toLocaleDateString()}"
           " *"
-          " * MIT Licensed"
+          " * @LICENSED@ Licensed"
           " */"
           ""].join("\n");
 
@@ -94,12 +94,34 @@ prependHeader = (file, callback) ->
     return
   return
 
+_readPackage = ->
+  res = fs.readFileSync("package.json", "utf8")
+  JSON.parse(res)
+
+_updateVersion = (package) ->
+  arr = package.version.split(".")
+  arr[2] = parseInt(arr[2], 10) + 1
+  package.version = arr.join(".")
+
+_buildHeader = (package) ->
+  console.log(package)
+  for value in ["version", "licensed", "author", "description"]
+    HEADER = HEADER.replace("@#{value.toUpperCase()}@", package[value])
+  return
+
+_writePackage = (package) -> fs.writeFileSync('package.json', JSON.stringify(package, null, 2))
+
+
 task "concat", "Concat the compiled JS", concat
 task "minifyCore", "Minify the compiled JS", minifyCore
 task "minifyExtras", "Minify non core files", minifyExtras
 task "compile", "Compile the coffeescript", compile
 task "clean", "Clean distribution directory", clean
 task "build", "Build the project", ->
+  _package = _readPackage()
+  _updateVersion(_package)
+  _buildHeader(_package)
+  _writePackage(_package)
   clean ->
     compile ->
       concat ->

@@ -1,7 +1,7 @@
 /**
- * Drumy.js v0.2
+ * Drumy.js v0.2.2
  *
- * A customizable drum pad console for trigger drum sounds
+ * A customizable drum pad console for triggering drum sounds.
  * @author Steven Sojka - Thursday, February 14, 2013
  *
  * MIT Licensed
@@ -379,7 +379,7 @@
       this.velocityMax = options.velocityMax || 127;
       this.velocityMin = options.velocityMin || 0;
       this.offset = options.offset || 0;
-      this.alternateRate = options.alternateRate || 0.25;
+      this.alternateRate = options.alternateRate != null ? options.alternateRate : 0.25;
       this.context = options.context;
       this.alternates = [];
       this.padOutput = options.padOutput;
