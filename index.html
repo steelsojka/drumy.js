@@ -8,8 +8,20 @@
   <script type="text/javascript" src="js/Drumy.Pad.js"></script>
   <script type="text/javascript" src="js/Drumy.Voice.js"></script>
   <script type="text/javascript" src="js/Drumy.UI.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.Converter.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.Util.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.Core.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.Decoder.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.Emitter.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.Encoder.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.Event.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.Note.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.Player.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.Query.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.Stream.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.Track.js"></script>
+  <script type="text/javascript" src="../jMID/src/jMID.File.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-  <script src="https://bitbucket.org/steelsojka/jmid.js/raw/cab87e7925f441819c00536cc7b4b78d595a2ed6/dist/jMID.min.js"></script>
   <link rel="stylesheet" href="src/ui/Drumy.UI.css">
   <style>
     #container {
@@ -23,12 +35,12 @@
   <input type="file"></input>
 
   <script type="text/javascript">
+    window.context = new webkitAudioContext();
     var handleChange = function(e) {
       var files = e.target.files;
       var reader = new FileReader();
 
       reader.onload = function(e) {
-        window.context = new webkitAudioContext();
         window.stream = new jMID.Stream(e.target.result);
         window.decoder = new jMID.Decoder();
         window.file = decoder.decode(stream);
@@ -37,10 +49,14 @@
           context : context
         });
 
-        player.on('event', function(e) {
+        player.addSchedule(function(e, time) {
           if (e.subtype === "noteOn") {
-            drums.trigger(e.noteNumber, e.velocity)
+            drums.trigger(e.noteNumber, e.velocity, time);
           }
+        });
+
+        player.on('stop pause', function() {
+          drums.stop();
         });
       };
 
@@ -48,7 +64,9 @@
     };
 
     $(function() {
-      window.drums = Drumy.create();
+      window.drums = Drumy.create({
+        context : context
+      });
       Drumy.UI.initialize();
 
       $.get('src/patches/9pad.json', function(e) {

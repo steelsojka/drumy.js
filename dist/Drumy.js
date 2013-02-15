@@ -1,8 +1,8 @@
 /**
- * Drumy.js v0.2.3
+ * Drumy.js v0.2.4
  *
  * A customizable drum pad console for triggering drum sounds.
- * @author Steven Sojka - Thursday, February 14, 2013
+ * @author Steven Sojka - Friday, February 15, 2013
  *
  * MIT Licensed
  */
@@ -80,8 +80,8 @@
   var checkPad,
     __hasProp = Object.prototype.hasOwnProperty;
 
-  checkPad = function(pad, note, velocity, delay) {
-    if (pad.note.indexOf(note) !== -1) pad.trigger(velocity, delay);
+  checkPad = function(pad, note, velocity, time) {
+    if (pad.note.indexOf(note) !== -1) pad.trigger(velocity, time);
   };
 
   Drumy.Core = (function() {
@@ -151,16 +151,29 @@
       return this;
     };
 
+    Core.prototype.stop = function() {
+      var pad, voice, _i, _j, _len, _len2, _ref, _ref2;
+      _ref = this.pads;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        pad = _ref[_i];
+        _ref2 = pad.voices;
+        for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+          voice = _ref2[_j];
+          voice.stop();
+        }
+      }
+    };
+
     Core.prototype.getContext = function() {
       return this.context;
     };
 
-    Core.prototype.trigger = function(note, velocity, delay) {
+    Core.prototype.trigger = function(note, velocity, time) {
       var pad, _i, _len, _ref;
       _ref = this.pads;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pad = _ref[_i];
-        checkPad(pad, note, velocity, delay);
+        checkPad(pad, note, velocity, time);
       }
       return this;
     };
@@ -179,9 +192,9 @@
 (function() {
   var checkVoices, _bindVoiceEvents, _handleVoiceEvent;
 
-  checkVoices = function(voice, velocity, delay) {
+  checkVoices = function(voice, velocity, time) {
     if ((voice.velocityMax >= velocity && velocity >= voice.velocityMin)) {
-      voice.trigger(velocity, delay);
+      voice.trigger(velocity, time);
     }
   };
 
@@ -299,12 +312,12 @@
       return this;
     };
 
-    Pad.prototype.trigger = function(velocity, delay) {
+    Pad.prototype.trigger = function(velocity, time) {
       var voice, _i, _len, _ref;
       _ref = this.voices;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         voice = _ref[_i];
-        checkVoices(voice, velocity, delay);
+        checkVoices(voice, velocity, time);
       }
       return this;
     };
@@ -343,7 +356,7 @@
 
   Sample = (function() {
 
-    function Sample(buffer, velocity, offset, min, max, output, context, delay, callback) {
+    function Sample(buffer, velocity, offset, min, max, output, context, time, voice, callback, onTriggerCallback) {
       this.context = context;
       this.offset = offset;
       this.callback = callback;
@@ -352,18 +365,29 @@
       this.source.buffer = buffer;
       this.source.connect(this.gainNode);
       this.gainNode.connect(output);
-      this.trigger(velocity, min, max);
+      this.onTriggerCallback = onTriggerCallback;
+      this.trigger(velocity, min, max, time);
+      this.voice = voice;
+      voice.on('stop', this.stop.bind(this));
     }
 
-    Sample.prototype.trigger = function(velocity, min, max) {
-      this.source.start(this.context.currentTime + this.delay + this.offset);
+    Sample.prototype.trigger = function(velocity, min, max, time) {
+      if (time == null) time = this.context.currentTime;
+      this.source.start(time + this.offset);
       this.gainNode.gain.value = velocity / 127;
-      setTimeout(this.destroy.bind(this), (this.source.buffer.duration + this.offset) * 1000);
+      this.onTriggerTimeout = setTimeout(this.onTriggerCallback, ((time - this.context.currentTime) + this.offset) * 1000);
+      this.onDestroyTimeout = setTimeout(this.destroy.bind(this), (this.source.buffer.duration + this.offset + (time - this.context.currentTime)) * 1000);
+    };
+
+    Sample.prototype.stop = function() {
+      clearTimeout(this.onTriggerTimeout);
+      clearTimeout(this.onDestroyTimeout);
+      this.source.disconnect(0);
+      return this.gainNode.disconnect(0);
     };
 
     Sample.prototype.destroy = function() {
-      this.source.disconnect(0);
-      this.gainNode.disconnect(0);
+      this.stop();
       this.callback();
     };
 
@@ -374,7 +398,7 @@
   Drumy.Voice = (function() {
 
     function Voice(options) {
-      var alt, _i, _len, _ref;
+      var alt, alternate, _i, _len, _ref;
       if (options == null) options = {};
       this.velocityMax = options.velocityMax || 127;
       this.velocityMin = options.velocityMin || 0;
@@ -385,6 +409,7 @@
       this.padOutput = options.padOutput;
       this.url = options.url || "";
       this.gain = options.gain || 1;
+      this.onTriggerTimeouts = [];
       this.output = this.context.createGainNode();
       this.output.connect(this.padOutput);
       if (options.gain) this.setGain(options.gain);
@@ -396,7 +421,10 @@
           alt = _ref[_i];
           alt.context = this.context;
           alt.padOutput = this.padOutput;
-          this.alternates.push(new Drumy.Voice(alt));
+          alternate = new Drumy.Voice(alt);
+          alternate.on('sampleStart', this.onTrigger.bind(this));
+          alternate.on('sampleEnd', this.onSampleDestroy.bind(this));
+          this.alternates.push(alternate);
         }
       }
     }
@@ -443,12 +471,15 @@
       return this;
     };
 
-    Voice.prototype.trigger = function(velocity, delay) {
-      this.emit('sampleStart');
+    Voice.prototype.onTrigger = function(e) {
+      return this.emit('sampleStart');
+    };
+
+    Voice.prototype.trigger = function(velocity, time) {
       if (Math.random() < this.alternateRate && this.alternates.length > 0) {
         this.alternates[_getRandomInt(0, this.alternates.length - 1)].trigger(velocity);
       } else {
-        new Sample(this.buffer, velocity, this.offset, this.velocityMin, this.velocityMax, this.output, this.context, delay, this.onSampleDestroy.bind(this));
+        new Sample(this.buffer, velocity, this.offset, this.velocityMin, this.velocityMax, this.output, this.context, time, this, this.onSampleDestroy.bind(this), this.onTrigger.bind(this));
       }
       return this;
     };
@@ -483,6 +514,10 @@
 
     Voice.prototype.getDuration = function() {
       return this.buffer.duration;
+    };
+
+    Voice.prototype.stop = function() {
+      return this.emit('stop');
     };
 
     Voice.prototype.destroy = function() {

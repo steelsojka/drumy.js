@@ -8,7 +8,7 @@ _ajax = (url, callback) ->
 _getRandomInt = (min, max) -> Math.floor(Math.random() * (max - min + 1)) + min
 
 class Sample
-  constructor: (buffer, velocity, offset, min, max, output, context, delay, callback) ->
+  constructor: (buffer, velocity, offset, min, max, output, context, time, voice, callback, onTriggerCallback) ->
     @context = context
     @offset = offset
     @callback = callback
@@ -17,15 +17,24 @@ class Sample
     @source.buffer = buffer
     @source.connect(@gainNode)
     @gainNode.connect(output)
-    @trigger(velocity, min, max)
-  trigger: (velocity, min, max) ->
-    @source.start(@context.currentTime + @delay + @offset)
+    @onTriggerCallback = onTriggerCallback
+    @trigger(velocity, min, max, time)
+    @voice = voice
+    voice.on('stop', @stop.bind(this))
+  trigger: (velocity, min, max, time=@context.currentTime) ->
+    @source.start(time + @offset)
     @gainNode.gain.value = velocity / 127
-    setTimeout(@destroy.bind(this), (@source.buffer.duration + @offset) * 1000)
+    # Until the Web Audio API supports event bindings at certain times we have to use timeouts :(
+    @onTriggerTimeout = setTimeout(@onTriggerCallback, ((time - @context.currentTime) + @offset) * 1000)
+    @onDestroyTimeout = setTimeout(@destroy.bind(this), (@source.buffer.duration + @offset + (time - @context.currentTime)) * 1000)
     return
-  destroy: ->
+  stop: ->
+    clearTimeout(@onTriggerTimeout)
+    clearTimeout(@onDestroyTimeout)
     @source.disconnect(0)
     @gainNode.disconnect(0)
+  destroy: ->
+    @stop()
     @callback()
     return
 
@@ -41,6 +50,7 @@ class Drumy.Voice
     @padOutput = options.padOutput
     @url = options.url or ""
     @gain = options.gain or 1
+    @onTriggerTimeouts = []
 
     @output = @context.createGainNode()
     @output.connect(@padOutput)
@@ -53,7 +63,11 @@ class Drumy.Voice
       for alt in options.alternates
         alt.context = @context
         alt.padOutput = @padOutput
-        @alternates.push(new Drumy.Voice(alt)) 
+        alternate = new Drumy.Voice(alt)
+        alternate.on('sampleStart', @onTrigger.bind(this))
+        alternate.on('sampleEnd', @onSampleDestroy.bind(this))
+        @alternates.push(alternate)
+
   save: ->
     {
       "url" : @url,
@@ -79,12 +93,14 @@ class Drumy.Voice
     else 
       @buffer = buffer
     return this
-  trigger: (velocity, delay) ->
+  onTrigger: (e) ->
     @emit('sampleStart')
+  trigger: (velocity, time) ->
     if Math.random() < @alternateRate and @alternates.length > 0
       @alternates[_getRandomInt(0, @alternates.length - 1)].trigger(velocity)
     else
-      new Sample(@buffer, velocity, @offset, @velocityMin, @velocityMax, @output, @context, delay, @onSampleDestroy.bind(this))
+      new Sample(@buffer, velocity, @offset, @velocityMin, @velocityMax, @output, 
+                 @context, time, this, @onSampleDestroy.bind(this), @onTrigger.bind(this))
     return this
   onSampleDestroy: -> @emit('sampleEnd')
   setVelocityMax: (velocity) ->
@@ -100,6 +116,8 @@ class Drumy.Voice
     @offset = offset
     return this
   getDuration: -> @buffer.duration
+  stop: -> 
+    @emit('stop')
   destroy: ->
     @output.disconnect(0)
 

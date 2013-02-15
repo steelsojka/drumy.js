@@ -2,8 +2,8 @@
   var checkPad,
     __hasProp = Object.prototype.hasOwnProperty;
 
-  checkPad = function(pad, note, velocity, delay) {
-    if (pad.note.indexOf(note) !== -1) pad.trigger(velocity, delay);
+  checkPad = function(pad, note, velocity, time) {
+    if (pad.note.indexOf(note) !== -1) pad.trigger(velocity, time);
   };
 
   Drumy.Core = (function() {
@@ -73,16 +73,29 @@
       return this;
     };
 
+    Core.prototype.stop = function() {
+      var pad, voice, _i, _j, _len, _len2, _ref, _ref2;
+      _ref = this.pads;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        pad = _ref[_i];
+        _ref2 = pad.voices;
+        for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+          voice = _ref2[_j];
+          voice.stop();
+        }
+      }
+    };
+
     Core.prototype.getContext = function() {
       return this.context;
     };
 
-    Core.prototype.trigger = function(note, velocity, delay) {
+    Core.prototype.trigger = function(note, velocity, time) {
       var pad, _i, _len, _ref;
       _ref = this.pads;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         pad = _ref[_i];
-        checkPad(pad, note, velocity, delay);
+        checkPad(pad, note, velocity, time);
       }
       return this;
     };
