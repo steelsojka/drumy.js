@@ -1,8 +1,8 @@
 /**
- * Drumy.js v0.2.4
+ * Drumy.js v0.2.5
  *
  * A customizable drum pad console for triggering drum sounds.
- * @author Steven Sojka - Friday, February 15, 2013
+ * @author Steven Sojka - Monday, February 18, 2013
  *
  * MIT Licensed
  */
